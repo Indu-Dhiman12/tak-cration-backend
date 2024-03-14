@@ -20,6 +20,14 @@ const taskCreation = dbConn_1.default.define('taskCreation', {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
+    description: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+    },
+    file: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+    },
     status: {
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,

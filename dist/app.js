@@ -16,6 +16,7 @@ const express = require("express");
 const dbConn_1 = __importDefault(require("./util/dbConn"));
 const index_1 = __importDefault(require("./router/user/index"));
 const index_2 = __importDefault(require("./router/addTask/index"));
+const upload_1 = __importDefault(require("./router/upload"));
 const cors = require('cors');
 const app = express();
 const PORT = 5000;
@@ -39,6 +40,7 @@ const connectToDb = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 app.use("/", index_1.default);
 app.use("/", index_2.default);
+app.use("/file", upload_1.default);
 app.listen(PORT, () => {
     connectToDb();
     console.log(`Running on PORT ${PORT}`);

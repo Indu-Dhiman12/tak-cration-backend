@@ -21,14 +21,19 @@ const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const authToken = (_a = req.header("authorization")) === null || _a === void 0 ? void 0 : _a.replace("Bearer ", "");
     const { data } = yield (0, auth_1.checkAccessToken)(authToken);
     try {
-        const taskName = req.body.task;
-        const existingTask = yield taskCreation_model_1.default.findOne({ where: { task: taskName, user: data.user._id.toString() } });
+        const { task, description, file } = req.body;
+        if (!file) {
+            return res.status(400).json({ error: "Image file is required" });
+        }
+        const existingTask = yield taskCreation_model_1.default.findOne({ where: { task: task, user: data.user._id.toString() } });
         if (existingTask) {
             return res.status(400).json({ error: "Task already Exists" });
         }
         const createTask = {
-            task: taskName,
-            user: data.user._id
+            task: task,
+            description: description,
+            user: data.user._id,
+            file: file
         };
         const user = yield taskCreation_model_1.default.create(createTask);
         return res.status(201).json({ data: user, status: 201 });
@@ -43,6 +48,7 @@ const getTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b;
     const authToken = (_b = req.header("authorization")) === null || _b === void 0 ? void 0 : _b.replace("Bearer ", "");
     const { data } = yield (0, auth_1.checkAccessToken)(authToken);
+    console.log(data);
     try {
         const tasks = yield taskCreation_model_1.default.findAll({
             where: {
@@ -81,7 +87,7 @@ const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.status(404).json({ error: "Task not found" });
         }
         yield task.destroy();
-        return res.status(204).json({ success: true, message: "Task successfully deleted" });
+        return res.status(201).json({ success: true, message: "Task successfully deleted" });
     }
     catch (error) {
         console.error("Error deleting task:", error);
@@ -92,15 +98,13 @@ exports.deleteTask = deleteTask;
 const editTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const taskId = req.params.id;
-        const { task: updatedTaskName, id: id } = req.body;
-        const task = yield taskCreation_model_1.default.findByPk(taskId);
-        if (!task) {
-            return res.status(404).json({ error: "Task not found" });
+        const { task, description } = req.body;
+        const taskToUpdate = yield taskCreation_model_1.default.findByPk(taskId);
+        if (!taskToUpdate) {
+            return res.status(404).json({ success: false, message: "Task not found" });
         }
-        task.task = updatedTaskName;
-        task.id = id;
-        yield task.save();
-        return res.status(200).json({ success: true, message: "Task successfully updated", task: updatedTaskName });
+        yield taskToUpdate.update(req.body);
+        return res.status(200).json({ success: true, message: "Task successfully updated", task: taskToUpdate });
     }
     catch (error) {
         console.error("Error updating task:", error);

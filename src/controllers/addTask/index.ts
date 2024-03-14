@@ -8,15 +8,22 @@ const addTask = async (req: Request, res: Response) => {
 
     const { data }: any = await checkAccessToken(authToken)
     try {
-        const taskName = req.body.task;
-        const existingTask = await taskCreation.findOne({ where: { task: taskName, user: data.user._id.toString() } });
+        const { task, description, file } = req.body
+
+        if (!file) {
+            return res.status(400).json({ error: "Image file is required" });
+        }
+        const existingTask = await taskCreation.findOne({ where: { task: task, user: data.user._id.toString() } });
 
         if (existingTask) {
             return res.status(400).json({ error: "Task already Exists" });
         }
+
         const createTask = {
-            task: taskName,
-            user: data.user._id
+            task: task,
+            description: description,
+            user: data.user._id,
+            file: file
         };
         const user = await taskCreation.create(createTask);
         return res.status(201).json({ data: user, status: 201 });
@@ -28,6 +35,7 @@ const addTask = async (req: Request, res: Response) => {
 const getTask = async (req: Request, res: Response) => {
     const authToken: any = req.header("authorization")?.replace("Bearer ", "");
     const { data }: any = await checkAccessToken(authToken)
+    console.log(data);
     try {
         const tasks = await taskCreation.findAll({
             where: {
@@ -68,7 +76,7 @@ const deleteTask = async (req: Request, res: Response) => {
         }
 
         await task.destroy();
-        return res.status(204).json({ success: true, message: "Task successfully deleted" });
+        return res.status(201).json({ success: true, message: "Task successfully deleted" });
     } catch (error: any) {
         console.error("Error deleting task:", error);
         return res.status(500).json({ error: "Internal Server Error" });
@@ -78,18 +86,16 @@ const deleteTask = async (req: Request, res: Response) => {
 const editTask = async (req: Request, res: Response) => {
     try {
         const taskId = req.params.id;
-        const { task: updatedTaskName, id: id } = req.body;
-        const task = await taskCreation.findByPk(taskId);
+        const { task, description } = req.body;
+        const taskToUpdate = await taskCreation.findByPk(taskId);
 
-        if (!task) {
-            return res.status(404).json({ error: "Task not found" });
+        if (!taskToUpdate) {
+            return res.status(404).json({ success: false, message: "Task not found" });
         }
 
-        task.task = updatedTaskName;
-        task.id = id;
-        await task.save();
+        await taskToUpdate.update(req.body);
 
-        return res.status(200).json({ success: true, message: "Task successfully updated", task: updatedTaskName });
+        return res.status(200).json({ success: true, message: "Task successfully updated", task: taskToUpdate });
     } catch (error: any) {
         console.error("Error updating task:", error);
         return res.status(500).json({ error: "Internal Server Error" });

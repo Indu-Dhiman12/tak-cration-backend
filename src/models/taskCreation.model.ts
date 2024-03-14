@@ -16,6 +16,15 @@ const taskCreation = db.define('taskCreation', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+
+    description: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    file: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     status: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

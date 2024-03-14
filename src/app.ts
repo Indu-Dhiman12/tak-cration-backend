@@ -2,6 +2,8 @@ const express = require("express")
 import sequelize from "./util/dbConn";
 import user from "./router/user/index"
 import addTask from "./router/addTask/index"
+import fileRouter from './router/upload';
+
 const cors = require('cors');
 const app = express();
 const PORT = 5000;
@@ -26,6 +28,8 @@ const connectToDb = async () => {
 
 app.use("/", user);
 app.use("/", addTask);
+app.use("/file", fileRouter);
+
 
 app.listen(PORT, () => {
     connectToDb();
